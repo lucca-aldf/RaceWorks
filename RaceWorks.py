@@ -1,10 +1,10 @@
 # A simulation by Lucca Limongi
 
-import random
+import random as rd
 import time
 import pygame as pg
 import math
-import copy
+from core import *
 
 n_cars = 250 #int(input(""))
 
@@ -42,10 +42,13 @@ def distance_two_points(pointA, pointB):
 def line_tracer_2(angle, start_x, start_y, mask):
     x = int(start_x)
     y = int(start_y)
+
     if angle >= 360:
         angle -= 360
+
     angle = math.radians(angle)
     angle = round(angle, 1)
+
     if (45 > angle > 0 or 225 > angle > 135 or 360 > angle > 315) and angle != 180:
         if angle > 270 or angle < 90:
             n = 1
@@ -98,106 +101,6 @@ def print_text(text, coords):
     text_print = font.render(text, False, (0, 0, 0))
     screen.blit(text_print, coords)
 
-class Network:
-    def __init__(self, variables=2, data=[]):
-        if not data:
-
-            self.weight_throttle = round(random.uniform(-1, 1), 3)
-            self.bias_throttle = round(random.uniform(-500, 500), 3)
-            self.weight_turning = round(random.uniform(-1, 1), 3)
-
-            self.weight_0_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_1_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_2_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_3_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_4_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_5_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_6_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_7_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_8_throttle = round(random.uniform(-1, 1), 3)
-            self.weight_speed_throttle = round(random.uniform(-1, 1), 3)
-
-            self.weight_0_turning = round(random.uniform(-1, 1), 3)
-            self.weight_1_turning = round(random.uniform(-1, 1), 3)
-            self.weight_2_turning = round(random.uniform(-1, 1), 3)
-            self.weight_3_turning = round(random.uniform(-1, 1), 3)
-            self.weight_4_turning = round(random.uniform(-1, 1), 3)
-            self.weight_5_turning = round(random.uniform(-1, 1), 3)
-            self.weight_6_turning = round(random.uniform(-1, 1), 3)
-            self.weight_7_turning = round(random.uniform(-1, 1), 3)
-            self.weight_8_turning = round(random.uniform(-1, 1), 3)
-            self.weight_speed_turning = round(random.uniform(-1, 1), 3)
-
-        else:
-
-            self.weight_throttle = data[0]
-            self.bias_throttle = data[1]
-            self.weight_turning = data[2]
-
-            self.weight_0_throttle = data[3]
-            self.weight_1_throttle = data[4]
-            self.weight_2_throttle = data[5]
-            self.weight_3_throttle = data[6]
-            self.weight_4_throttle = data[7]
-            self.weight_5_throttle = data[8]
-            self.weight_6_throttle = data[9]
-            self.weight_7_throttle = data[10]
-            self.weight_8_throttle = data[11]
-            self.weight_speed_throttle = data[12]
-
-            self.weight_0_turning = data[13]
-            self.weight_1_turning = data[14]
-            self.weight_2_turning = data[15]
-            self.weight_3_turning = data[16]
-            self.weight_4_turning = data[17]
-            self.weight_5_turning = data[18]
-            self.weight_6_turning = data[19]
-            self.weight_7_turning = data[20]
-            self.weight_8_turning = data[21]
-            self.weight_speed_turning = data[22]
-
-        self.change_list = []
-        self.data_set = [self.weight_throttle, self.bias_throttle, self.weight_turning, self.weight_0_throttle,
-                         self.weight_1_throttle, self.weight_2_throttle, self.weight_3_throttle, self.weight_4_throttle,
-                         self.weight_5_throttle, self.weight_6_throttle, self.weight_7_throttle, self.weight_8_throttle,
-                         self.weight_speed_throttle, self.weight_0_turning, self.weight_1_turning, self.weight_2_turning,
-                         self.weight_3_turning, self.weight_4_turning, self.weight_5_turning, self.weight_6_turning,
-                         self.weight_7_turning, self.weight_8_turning, self.weight_speed_turning]
-
-        if variables != 0:
-            for ele in range(variables):
-                n = random.randint(0, len(self.data_set) - 1)
-                while n in self.change_list:
-                    n = random.randint(0, len(self.data_set) - 1)
-                self.change_list.append(n)
-
-            for n in self.change_list:
-                if abs(self.data_set[n]) >= 0.005:
-                    self.data_set[n] = round(self.data_set[n] * random.uniform(0.98, 1.02) * ((-1) ** random.randint(1, 2)), 3)
-
-        self.throttle_weights = [self.weight_0_throttle, self.weight_1_throttle, self.weight_2_throttle,
-                            self.weight_3_throttle, self.weight_4_throttle, self.weight_5_throttle,
-                            self.weight_6_throttle, self.weight_7_throttle, self.weight_8_throttle,
-                            self.weight_speed_throttle]
-
-        self.turning_weights = [self.weight_0_turning, self.weight_1_turning, self.weight_2_turning,
-                            self.weight_3_turning, self.weight_4_turning, self.weight_5_turning,
-                            self.weight_6_turning, self.weight_7_turning, self.weight_8_turning,
-                            self.weight_speed_turning]
-
-    def neuron(self, weights, inputs):
-        output = 0
-        for inp in inputs:
-            output += weights[inputs.index(inp)] * inp
-        return output
-
-    def throttle_output(self, input_data):
-        return self.neuron(self.throttle_weights, input_data) * self.weight_throttle + self.bias_throttle
-
-    def turning_output(self, input_data):
-        return self.neuron(self.turning_weights, input_data) * self.weight_turning
-
-
 
 class Car(pg.sprite.Sprite):
     def __init__(self, image, x_coord, y_coord, angle, top_speed, acceleration, brake, turning_angle, network):
@@ -243,28 +146,23 @@ class Car(pg.sprite.Sprite):
 
         #trace_time = time.time()
         #time.sleep(0.001)
-        self.line_0 = line_tracer_2(self.angle, self.x, self.y, track_mask)
-        self.line_1 = line_tracer_2(self.angle + 15, self.x, self.y, track_mask)
-        self.line_2 = line_tracer_2(self.angle + 45, self.x, self.y, track_mask)
-        self.line_3 = line_tracer_2(self.angle + 75, self.x, self.y, track_mask)
-        self.line_4 = line_tracer_2(self.angle + 90, self.x, self.y, track_mask)
-        self.line_5 = line_tracer_2(self.angle + 270, self.x, self.y, track_mask)
-        self.line_6 = line_tracer_2(self.angle + 285, self.x, self.y, track_mask)
-        self.line_7 = line_tracer_2(self.angle + 315, self.x, self.y, track_mask)
-        self.line_8 = line_tracer_2(self.angle + 345, self.x, self.y, track_mask)
-
-        #trace_time = time.time() - trace_time
-        input_data = (self.speed, self.line_0, self.line_1, self.line_2, self.line_3, self.line_4, self.line_5, self.line_6, self.line_7, self.line_8)
+        input_data = [
+        self.speed,
+        self.angle,
+        line_tracer_2(self.angle, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 15, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 45, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 90, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 270, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 315, self.x, self.y, track_mask),
+        line_tracer_2(self.angle + 345, self.x, self.y, track_mask)
+        ]
 
         if not self.crash:
-            self.throttle = self.network.throttle_output(input_data)
-            self.turning = self.network.turning_output(input_data)
-            if self.angle >= 360:
-                self.angle -= 360
-            elif self.angle < 0:
-                self.angle += 360
-            else:
-                pass
+            self.throttle, self.turning = self.network.feedforward(input_data)
+
+
+            self.angle = self.angle % 360
 
             if self.throttle > 1:
                 self.throttle = 1
@@ -374,7 +272,7 @@ for x in range(n_cars):
     grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network()))
 
 screen.fill((96, 96, 96))
-track = pg.image.load("gfx/FlashPoint Raceway Short L Mask.png")
+track = pg.image.load("gfx/FlashPoint Raceway Short LC Mask.png")
 track_mask = pg.mask.from_surface(track)
 screen.blit(track, (0, 0))
 pg.display.update()
@@ -396,7 +294,7 @@ while running:
         #print(f"----------------Tick {game_tick}----------------")
         #tick_time = time.time()
         screen.fill((96, 96, 96))
-        track = pg.image.load("gfx/FlashPoint Raceway Short L Mask.png")
+        track = pg.image.load("gfx/FlashPoint Raceway Short LC Mask.png")
         track_mask = pg.mask.from_surface(track)
         screen.blit(track, (0, 0))
         print_text(f"{game_tick} / {gen_counter}", (550, 410))
@@ -418,7 +316,7 @@ while running:
             for car in grid:
                 if car.speed <= 0.25 and not car.crash:
                     still_counter += 1
-        if running_cars - still_counter == 0:
+        if running_cars == still_counter:
             break
         end_4 = time.time()
         # print(f"{end_4 - start_4} seconds tick")
@@ -430,22 +328,26 @@ while running:
 
     new_grid = []
     total_distance = 0
+    
     for car in grid:
         car.gap_to_cp = distance_two_points(cp_list[car.points], (car.x, car.y))
-    grid.sort(key=lambda car: (car.gap_to_cp - (car.points * 500)), reverse=False)
-    print(grid[0].network.data_set, grid[0].gap_to_cp - (grid[0].points * 500))
+
+    grid.sort(key=lambda car: (car.distance), reverse=True)
+    #print(grid[0].network.network_weights, grid[0].gap_to_cp - (grid[0].points * 500))
     for car in grid:
         total_distance += car.distance
 
-    for x in range(int(n_cars * 0.8)):
+    for x in range(10):
         grid.pop()
-    for car in grid:
-        car.reset_car()
-        new_grid.append(car)
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(random.randint(1, 10), car.network.data_set)))
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(random.randint(1, 10), car.network.data_set)))
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(random.randint(1, 10), car.network.data_set)))
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(random.randint(1, 10), car.network.data_set)))
+    for x in range(10):
+        grid[x].reset_car()
+        new_grid.append(grid[x])
+        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(grid[x].network.network_weights, True)))
+
+    for x in range(10, n_cars - 10):
+        grid[x].reset_car()
+        grid[x].network.mutate()
+        new_grid.append(grid[x])
         
 
     end_3 = time.time()

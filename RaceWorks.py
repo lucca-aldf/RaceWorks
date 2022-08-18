@@ -6,32 +6,6 @@ import pygame as pg
 import math
 from core import *
 
-n_cars = 250 #int(input(""))
-
-# Initialize pygame
-pg.init()
-
-# Clock set-up
-CLOCK = pg.time.Clock()
-
-# Display
-pg.display.init()
-
-# Game loop
-running = True
-
-# Screen setting
-pg.display.gl_set_attribute(pg.GL_MULTISAMPLEBUFFERS, 0)
-screen = pg.display.set_mode((1200, 600))
-
-# Title and Icon
-pg.display.set_caption("gfx/Race Works")
-icon = pg.image.load("gfx/RaceWorksIcon.png")
-pg.display.set_icon(icon)
-
-# Font
-font = pg.font.SysFont('century', 18)
-
 
 def distance_two_points(pointA, pointB):
     a_x, a_y = pointA
@@ -136,7 +110,6 @@ class Car(pg.sprite.Sprite):
         global track_mask
         global running_cars
 
-        #total_time = time.time()
         self.image = pg.transform.rotate(self.original_image, -self.angle)
 
         self.mask = pg.mask.from_surface(self.image)
@@ -144,8 +117,6 @@ class Car(pg.sprite.Sprite):
         dump, dump, self.width, self.height = self.rect
         "%.3f" % self.angle
 
-        #trace_time = time.time()
-        #time.sleep(0.001)
         input_data = [
         self.speed,
         self.angle,
@@ -242,37 +213,47 @@ class Car(pg.sprite.Sprite):
         self.distance = 0
         self.age -= 1
 
-    def eliminate_car(self):
-        global new_grid
-
-        if self.points == 0:
-            pass
-
-        else:
-            new_grid.append(self)
 
 
 
+n_cars = 250 #int(input(""))
+
+# Initialize pygame
+pg.init()
+
+# Clock set-up
+CLOCK = pg.time.Clock()
+
+# Display
+pg.display.init()
+
+# Game loop
+running = True
+
+# Screen setting
+pg.display.gl_set_attribute(pg.GL_MULTISAMPLEBUFFERS, 0)
+screen = pg.display.set_mode((1200, 600))
+
+# Title and Icon
+pg.display.set_caption("gfx/Race Works")
+icon = pg.image.load("gfx/RaceWorksIcon.png")
+pg.display.set_icon(icon)
+
+# Font
+font = pg.font.SysFont('century', 18)
 
 
-
-
-
-
-
-
-
-
-
-
+track_name = "FlashPoint Raceway Short LC"
 gen_counter = 0
 cp_list = [(-585, 480), (-450, 480), (-230, 480), (150, -465), (175, -455), (270, -415), (410, -370), (1200, -600)]
+
 grid = []
 for x in range(n_cars):
     grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network()))
+best_car = grid[0]
 
 screen.fill((96, 96, 96))
-track = pg.image.load("gfx/FlashPoint Raceway Short LC Mask.png")
+track = pg.image.load(f"gfx/{track_name} Mask.png")
 track_mask = pg.mask.from_surface(track)
 screen.blit(track, (0, 0))
 pg.display.update()
@@ -283,45 +264,42 @@ while running:
     running_cars = n_cars
     start_3 = time.time()
     game_tick = 0
+
     while running_cars > 0 and game_tick < 500 and running:
-        CLOCK.tick(60)
+        #CLOCK.tick(60)
         game_tick += 1
-        start_4 = time.time()
+
         for event in pg.event.get():
             if event.type == pg.quit:
                 running = False
 
-        #print(f"----------------Tick {game_tick}----------------")
-        #tick_time = time.time()
+
         screen.fill((96, 96, 96))
-        track = pg.image.load("gfx/FlashPoint Raceway Short LC Mask.png")
+        track = pg.image.load(f"gfx/{track_name} Mask.png")
         track_mask = pg.mask.from_surface(track)
         screen.blit(track, (0, 0))
         print_text(f"{game_tick} / {gen_counter}", (550, 410))
-        #print(f"P0 {time.time() - tick_time}")
+        
         for car in grid:
             if not car.crash:
                 car.update_car()
-        #print(f"P1 {time.time() - tick_time}")
             
 
-        screen.blit(grid[0].image, (int(grid[0].pos_x), int(grid[0].pos_y)))
-        #print(f"P2 {time.time() - tick_time}")
+        screen.blit(best_car.image, (int(best_car.pos_x), int(best_car.pos_y)))
 
         pg.display.update()
-        #print(f"P3 {time.time() - tick_time}")
         
         still_counter = 0
         if game_tick > 20:
             for car in grid:
                 if car.speed <= 0.25 and not car.crash:
                     still_counter += 1
+
         if running_cars == still_counter:
             break
-        end_4 = time.time()
-        # print(f"{end_4 - start_4} seconds tick")
+        
     
-        #Check to close app
+        # Check to close app
         keys = pg.key.get_pressed()
         if keys[pg.K_ESCAPE]:
             running = False
@@ -334,6 +312,8 @@ while running:
 
     grid.sort(key=lambda car: (car.distance), reverse=True)
     #print(grid[0].network.network_weights, grid[0].gap_to_cp - (grid[0].points * 500))
+    best_car = grid[0]
+
     for car in grid:
         total_distance += car.distance
 

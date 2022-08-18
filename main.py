@@ -106,6 +106,9 @@ class Car(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.width, self.height = self.rect.center
 
+    def get_data(self):
+        return self.network.get_data()
+
     def update_car(self):
         global track_mask
         global running_cars
@@ -322,7 +325,7 @@ while running:
     for x in range(10):
         grid[x].reset_car()
         new_grid.append(grid[x])
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(grid[x].network.network_weights, True)))
+        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(grid[x].get_data(), True)))
 
     for x in range(10, n_cars - 10):
         grid[x].reset_car()

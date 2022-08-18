@@ -10,8 +10,6 @@ The neural network is to be arranged in an input layer with XXXXXXXXXX inputs, t
 
 rd.seed(20062002)
 
-def random_weight():
-    return rd.random() * rd.choice([-1,1])
 
 class Network:
 
@@ -33,6 +31,9 @@ class Network:
     def set_mutation_noise_factor(n):
         Network.mutation_noise_factor = n
 
+    
+    def init_random_weight():
+        return rd.random() * rd.choice([-1,1])
 
     def weight_mutation():
         return math.pow(rd.randrange(start=1000, stop=Network.mutation_strength_factor, step=1) / 1000, rd.choice([-1, 1]))
@@ -44,20 +45,24 @@ class Network:
     def __init__(self, data=[], mutate=False):
         
         if len(data) == 0:
-            self.network_weights = np.array([[[random_weight() for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)])
+            self.network_weights = np.array([[[Network.init_random_weight() for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)])
             
+            self.bias = np.array([Network.init_random_weight() for i in range(len(self.network_structure) - 1)])
         
         else:
-            self.network_weights = data
+            self.network_weights, self.bias = data
 
             if mutate:
                 self.mutate()
+
+    def get_data(self):
+        return [self.network_weights, self.bias]
 
     def feedforward(self, data):
         for layer in range(len(self.network_weights)):
             data = np.dot(data, self.network_weights[layer])
             for i in range(len(data)):
-                data[i] = math.tanh(data[i])
+                data[i] = math.tanh(data[i]) + self.bias[layer]
 
         return data.flatten()
 
@@ -71,3 +76,7 @@ class Network:
 
                         if rd.random() < self.gene_mutation_chance: # If mutation happens
                             self.network_weights[layer][neuron][weight] = self.network_weights[layer][neuron][weight] * Network.weight_mutation() + Network.weight_noise()
+
+            for layer in range(len(self.bias)):
+                self.bias[layer] = self.bias[layer] * Network.weight_mutation() + Network.weight_noise()
+

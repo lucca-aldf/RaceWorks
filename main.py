@@ -218,9 +218,6 @@ class Car(pg.sprite.Sprite):
 
 
 
-
-n_cars = 250 #int(input(""))
-
 # Initialize pygame
 pg.init()
 
@@ -250,9 +247,22 @@ track_name = "FlashPoint Raceway Short LC"
 gen_counter = 0
 cp_list = [(-585, 480), (-450, 480), (-230, 480), (150, -465), (175, -455), (270, -415), (410, -370), (1200, -600)]
 
+n_cars = 250 #int(input(""))
+
+Network.set_individual_mutation_chance(1)
+Network.set_crossover_chance(0.9)
+Network.set_crossover_bias(0.5)
+Network.set_gene_mutation_chance(0.01)
+Network.set_mutation_strength_factor(0.30)
+Network.set_mutation_noise_factor(0)
+
+def new_car(data=[], mutate=False):
+    return Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(data, mutate))
+
 grid = []
 for x in range(n_cars):
     grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network()))
+    
 best_car = grid[0]
 
 screen.fill((96, 96, 96))
@@ -264,8 +274,9 @@ pg.display.update()
 
 running = True
 while running:
-    running_cars = n_cars
     start_3 = time.time()
+
+    running_cars = n_cars
     game_tick = 0
 
     while running_cars > 0 and game_tick < 500 and running:
@@ -292,7 +303,7 @@ while running:
 
         pg.display.update()
         
-        still_counter = 0
+        still_counter = 0 # To be reworked
         if game_tick > 20:
             for car in grid:
                 if car.speed <= 0.25 and not car.crash:
@@ -315,26 +326,41 @@ while running:
 
     grid.sort(key=lambda car: (car.distance), reverse=True)
     #print(grid[0].network.network_weights, grid[0].gap_to_cp - (grid[0].points * 500))
-    best_car = grid[0]
 
     for car in grid:
         total_distance += car.distance
 
-    for x in range(10):
-        grid.pop()
-    for x in range(10):
-        grid[x].reset_car()
-        new_grid.append(grid[x])
-        new_grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(grid[x].get_data(), True)))
+    # Reprodution and mutation
+    
+    car_count = 0
 
-    for x in range(10, n_cars - 10):
-        grid[x].reset_car()
-        grid[x].network.mutate()
-        new_grid.append(grid[x])
-        
+    while len(grid) > 0 and grid[-1].speed == 0:
+        grid.pop()
+
+    for i in range(20):
+        new_grid.append(new_car(data=grid[i].get_data()))
+        car_count += 1
+
+    reproduction_pool = new_grid.copy()
+    rd.shuffle(reproduction_pool)
+    for i in range(2):
+        children = Network.reproduce(reproduction_pool[2*i].network, reproduction_pool[2*i + 1].network)
+        new_grid.append(new_car(data=children[0]))
+        new_grid.append(new_car(data=children[1]))
+        car_count += 2
+
+    i = 0
+    while i < len(grid) and car_count < n_cars:
+        new_grid.append(new_car(data=grid[i].get_data(), mutate=True))
+        i += 1
+        car_count += 1
+    
+    while car_count < n_cars:
+        new_grid.append(new_car())
+        car_count += 1
 
     end_3 = time.time()
     print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres in {end_3 - start_3} seconds for {n_cars} cars")
     gen_counter += 1
-    grid = new_grid
-
+    grid = new_grid.copy()
+    best_car = grid[0]

@@ -16,18 +16,24 @@ class Network:
     network_structure = np.array([9,6,4,2])
 
     # Mutation explained later in the code
-    individual_mutation_chance = 0.1              # Chance for each network to mutate when ordered to mutate
-    gene_mutation_chance = 0.1
-    mutation_strength_factor = 1.1 * 1000     # How large the alterations to the value of the weight can be
-    mutation_noise_factor = 0.1             # Addition factor
+    individual_mutation_chance = 0.1            # Chance for each network to mutate when ordered to mutate
+    crossover_chance = 0.8                      # Crossover chance
+    crossover_bias = 0.5                        # How likely it is for the genes to be picked from one over the other parent
+    gene_mutation_chance = 0.1                  
+    mutation_strength_factor = 0.1 * 1000 + 1000# How large the alterations to the value of the weight can be
+    mutation_noise_factor = 0.1                 # Addition factor
 
 
     def set_individual_mutation_chance(n):
         Network.individual_mutation_chance = n
+    def set_crossover_chance(n):
+        Network.crossover_chance = n
+    def set_crossover_bias(n):
+        Network.crossover_bias = n
     def set_gene_mutation_chance(n):
         Network.gene_mutation_chance = n
     def set_mutation_strength_factor(n):
-        Network.mutation_strength_factor = n
+        Network.mutation_strength_factor = n * 1000 + 1000
     def set_mutation_noise_factor(n):
         Network.mutation_noise_factor = n
 
@@ -41,19 +47,49 @@ class Network:
     def weight_noise():
         return rd.random() * rd.choice([-1,1])
 
+    
+    def reproduce(parent_A, parent_B):
+
+        child_A, child_B = Network(parent_A.get_data()), Network(parent_B.get_data())
+        
+        if rd.random() < Network.crossover_chance:
+
+            for layer in range(len(parent_A.network_weights)):
+                for neuron in range(len(parent_A.network_weights[layer])):
+                    for weight in range(len(parent_A.network_weights[layer][neuron])):
+
+                        if rd.random() < Network.crossover_bias:
+                            child_A.network_weights[layer][neuron][weight] = parent_A.network_weights[layer][neuron][weight]
+                            child_B.network_weights[layer][neuron][weight] = parent_B.network_weights[layer][neuron][weight]
+                        else:
+                            child_A.network_weights[layer][neuron][weight] = parent_B.network_weights[layer][neuron][weight]
+                            child_B.network_weights[layer][neuron][weight] = parent_A.network_weights[layer][neuron][weight]
+
+            for layer in range(len(parent_A.bias)):
+                if rd.random() < Network.crossover_bias:
+                    child_A.bias[layer] = parent_A.bias[layer]
+                    child_B.bias[layer] = parent_B.bias[layer]
+
+                else:
+                    child_A.bias[layer] = parent_B.bias[layer]
+                    child_B.bias[layer] = parent_A.bias[layer]
+
+        return child_A.get_data(), child_B.get_data()
+
 
     def __init__(self, data=[], mutate=False):
-        
+
         if len(data) == 0:
-            self.network_weights = np.array([[[Network.init_random_weight() for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)])
+            self.network_weights = np.array([[[Network.init_random_weight() for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)]) # Returns a numpy array in the specified architecture
             
             self.bias = np.array([Network.init_random_weight() for i in range(len(self.network_structure) - 1)])
-        
-        else:
+
+        else: # Copy of previous individual
             self.network_weights, self.bias = data
 
             if mutate:
                 self.mutate()
+
 
     def get_data(self):
         return [self.network_weights, self.bias]
@@ -64,6 +100,7 @@ class Network:
             for i in range(len(data)):
                 data[i] = math.tanh(data[i]) + self.bias[layer]
 
+        data[-1] -= self.bias[-1] # Turning output
         return data.flatten()
 
 
@@ -79,4 +116,3 @@ class Network:
 
             for layer in range(len(self.bias)):
                 self.bias[layer] = self.bias[layer] * Network.weight_mutation() + Network.weight_noise()
-

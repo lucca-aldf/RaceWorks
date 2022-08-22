@@ -242,7 +242,7 @@ pg.display.set_icon(icon)
 # Font
 font = pg.font.SysFont('century', 18)
 
-
+render_all = True
 track_name = "FlashPoint Raceway Short LC"
 gen_counter = 0
 cp_list = [(-585, 480), (-450, 480), (-230, 480), (150, -465), (175, -455), (270, -415), (410, -370), (1200, -600)]
@@ -298,9 +298,11 @@ while running:
         for car in grid:
             if not car.crash:
                 car.update_car()
-            
+                if render_all:
+                    screen.blit(car.image, (int(car.pos_x), int(car.pos_y)))
 
-        screen.blit(best_car.image, (int(best_car.pos_x), int(best_car.pos_y)))
+        if not render_all:
+            screen.blit(best_car.image, (int(best_car.pos_x), int(best_car.pos_y)))
 
         pg.display.update()
         

@@ -32,7 +32,6 @@ class BestReproduce:
         for i in range(len(new_grid)):
             for _ in range(top_mutation_factor):
                 new_grid.append(self.new_car(data=population[i].get_data(), mutate=True))
-                print(_)
 
 
         # Reproduction of the best in the pool 

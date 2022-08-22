@@ -214,6 +214,10 @@ class Car(pg.sprite.Sprite):
                         if self.x < cp_x and self.y < cp_y:
                             self.points += 1
 
+
+    def fitness(self):
+        return (math.pow(self.distance, 2) / self.age) * (2 - (self.speed / self.top_speed))
+
                             
     def reset_car(self): # Deprecated
         self.x = self.x_coord
@@ -326,7 +330,7 @@ while running:
     for car in grid:
         car.gap_to_cp = distance_two_points(cp_list[car.points], (car.x, car.y))
 
-    grid.sort(key=lambda car: (car.distance), reverse=True)
+    grid.sort(key=lambda car: (car.fitness()), reverse=True)
     #print(grid[0].network.network_weights, grid[0].gap_to_cp - (grid[0].points * 500))
 
     for car in grid:

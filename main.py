@@ -216,7 +216,7 @@ class Car(pg.sprite.Sprite):
 
 
     def fitness(self):
-        return (math.pow(self.distance, 2) / self.age) * (2 - (self.speed / self.top_speed))
+        return (math.pow(self.distance, 3) / self.age) * (1 - (self.speed / self.top_speed))
 
                             
     def reset_car(self): # Deprecated
@@ -262,11 +262,11 @@ cp_list = [(-585, 480), (-450, 480), (-230, 480), (150, -465), (175, -455), (270
 n_cars = 250 #int(input(""))
 
 Network.set_individual_mutation_chance(1)
-Network.set_crossover_chance(0.9)
+Network.set_crossover_chance(1)
 Network.set_crossover_bias(0.5)
-Network.set_gene_mutation_chance(0.01)
-Network.set_mutation_strength_factor(0.30)
-Network.set_mutation_noise_factor(0)
+Network.set_gene_mutation_chance(0.025)
+Network.set_mutation_strength_factor(0.025)
+Network.set_mutation_noise_factor(0.00)
 
 def new_car(data=[], mutate=False):
     return Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(data, mutate))
@@ -292,7 +292,7 @@ while running:
     running_cars = n_cars
     game_tick = 0
 
-    while running_cars > 0 * n_cars and game_tick < 500 and running:
+    while running_cars > 5 and game_tick < 500 and running:
         #CLOCK.tick(60)
         game_tick += 1
 
@@ -338,7 +338,7 @@ while running:
 
     # Reprodution and mutation
     
-    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=5, top_mutation_factor=2)
+    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=0, top_mutation_factor=2)
 
     end_3 = time.time()
     print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres in {end_3 - start_3} seconds for {n_cars} cars")

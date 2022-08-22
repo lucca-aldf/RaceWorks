@@ -264,6 +264,7 @@ for x in range(n_cars):
     grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network()))
     
 best_car = grid[0]
+REPRODUCTION_METHOD = BestReproduce(Network.reproduce, new_car)
 
 screen.fill((96, 96, 96))
 track = pg.image.load(f"gfx/{track_name} Mask.png")
@@ -318,9 +319,7 @@ while running:
         if keys[pg.K_ESCAPE]:
             running = False
 
-    new_grid = []
     total_distance = 0
-    
     for car in grid:
         car.gap_to_cp = distance_two_points(cp_list[car.points], (car.x, car.y))
 
@@ -332,35 +331,9 @@ while running:
 
     # Reprodution and mutation
     
-    car_count = 0
-
-    while len(grid) > 0 and grid[-1].speed == 0:
-        grid.pop()
-
-    for i in range(20):
-        new_grid.append(new_car(data=grid[i].get_data()))
-        car_count += 1
-
-    reproduction_pool = new_grid.copy()
-    rd.shuffle(reproduction_pool)
-    for i in range(2):
-        children = Network.reproduce(reproduction_pool[2*i].network, reproduction_pool[2*i + 1].network)
-        new_grid.append(new_car(data=children[0]))
-        new_grid.append(new_car(data=children[1]))
-        car_count += 2
-
-    i = 0
-    while i < len(grid) and car_count < n_cars:
-        new_grid.append(new_car(data=grid[i].get_data(), mutate=True))
-        i += 1
-        car_count += 1
-    
-    while car_count < n_cars:
-        new_grid.append(new_car())
-        car_count += 1
+    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=5, top_mutation_factor=2)
 
     end_3 = time.time()
     print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres in {end_3 - start_3} seconds for {n_cars} cars")
     gen_counter += 1
-    grid = new_grid.copy()
     best_car = grid[0]

@@ -47,16 +47,13 @@ class BestReproduce:
         # Adding the rest of the population with mutated individuals
         i = top_immunity_count
         while i < len(population) and car_count < total_cars - bad_car:
-            print(i)
             new_grid.append(self.new_car(data=population[i].get_data(), mutate=True))
             i += 1
             car_count += 1
-        print(len(new_grid), car_count)
 
         # Filling the population with new individuals
         while car_count < total_cars:
             new_grid.append(self.new_car())
             car_count += 1
 
-        print(len(new_grid))
         return new_grid

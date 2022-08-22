@@ -116,31 +116,36 @@ class Car(pg.sprite.Sprite):
         global track_mask
         
 
-        self.age += 1
-        if self.age > 10 and self.speed == 0:
-            self.crash = True
+        if self.crash:
             return
+        
+        else:
+            self.age += 1
+            if self.age > 10 and self.speed == 0:
+                self.crash = True
+                return
 
-        self.image = pg.transform.rotate(self.original_image, -self.angle)
 
-        self.mask = pg.mask.from_surface(self.image)
-        self.rect = self.image.get_rect()
-        dump, dump, self.width, self.height = self.rect
-        "%.3f" % self.angle
+            self.image = pg.transform.rotate(self.original_image, -self.angle)
 
-        input_data = [
-        self.speed,
-        self.angle,
-        line_tracer_2(self.angle, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 15, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 45, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 90, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 270, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 315, self.x, self.y, track_mask),
-        line_tracer_2(self.angle + 345, self.x, self.y, track_mask)
-        ]
+            self.mask = pg.mask.from_surface(self.image)
+            self.rect = self.image.get_rect()
+            dump, dump, self.width, self.height = self.rect
+            "%.3f" % self.angle
 
-        if not self.crash:
+            
+            input_data = [
+            self.speed,
+            self.angle,
+            line_tracer_2(self.angle, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 15, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 45, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 90, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 270, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 315, self.x, self.y, track_mask),
+            line_tracer_2(self.angle + 345, self.x, self.y, track_mask)
+            ]
+
             self.throttle, self.turning = self.network.feedforward(input_data)
 
 
@@ -190,30 +195,27 @@ class Car(pg.sprite.Sprite):
             #screen.blit(self.image, (int(self.pos_x), int(self.pos_y)))
 
 
-        if track_mask.overlap(self.mask, ((int(self.pos_x), int(self.pos_y)))):
-            self.crash = True
+            if track_mask.overlap(self.mask, ((int(self.pos_x), int(self.pos_y)))):
+                self.crash = True
 
-        for cp in cp_list:
-            cp_x, cp_y = cp
-            if self.points % len(cp_list) == cp_list.index(cp):
-                if cp_x > 0 and cp_y > 0:
-                    if self.x > cp_x and self.y > cp_y:
-                        self.points += 1
-                elif cp_x < 0 and cp_y > 0:
-                    if self.x < -cp_x and self.y > cp_y:
-                        self.points += 1
-                elif cp_x > 0 and cp_y < 0:
-                    if self.x > cp_x and self.y < -cp_y:
-                        self.points += 1
-                elif cp_x < 0 and cp_y < 0:
-                    if self.x < cp_x and self.y < cp_y:
-                        self.points += 1
+            for cp in cp_list:
+                cp_x, cp_y = cp
+                if self.points % len(cp_list) == cp_list.index(cp):
+                    if cp_x > 0 and cp_y > 0:
+                        if self.x > cp_x and self.y > cp_y:
+                            self.points += 1
+                    elif cp_x < 0 and cp_y > 0:
+                        if self.x < -cp_x and self.y > cp_y:
+                            self.points += 1
+                    elif cp_x > 0 and cp_y < 0:
+                        if self.x > cp_x and self.y < -cp_y:
+                            self.points += 1
+                    elif cp_x < 0 and cp_y < 0:
+                        if self.x < cp_x and self.y < cp_y:
+                            self.points += 1
 
-        #total_time = time.time() - total_time
-
-        #print(total_time, trace_time)
-        #print(f"Time percent spent on line tracing: {100 * total_time / trace_time}%")
-    def reset_car(self):
+                            
+    def reset_car(self): # Deprecated
         self.x = self.x_coord
         self.y = self.y_coord
         self.speed = 0
@@ -286,7 +288,7 @@ while running:
     running_cars = n_cars
     game_tick = 0
 
-    while running_cars > 0.1 * n_cars and game_tick < 500 and running:
+    while running_cars > 0 * n_cars and game_tick < 500 and running:
         #CLOCK.tick(60)
         game_tick += 1
 

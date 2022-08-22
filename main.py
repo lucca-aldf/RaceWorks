@@ -84,34 +84,42 @@ class Car(pg.sprite.Sprite):
         self.throttle = 0
         self.turning = 0
 
-        self.distance = 0
-        self.gap_to_cp = 0
-        self.age = 0
-        self.points = 0
-        self.crash = False
-        self.angle = self.original_angle = angle
-        self.rad_angle = math.radians(self.angle)
-        self.original_image = pg.image.load(f"{image}")
-        self.image = pg.transform.rotate(self.original_image, self.angle)
-        self.rect = self.image.get_rect()
-        self.x = self.x_coord = x_coord
-        self.y = self.y_coord = y_coord
-        self.rect.center = (self.x, self.y)
         self.top_speed = top_speed
         self.acceleration = acceleration
         self.brake = brake
-        self.speed = 0
         self.turning_angle = turning_angle
+
+        self.crash = False
+        self.angle = self.original_angle = angle
+        self.rad_angle = math.radians(self.angle)
+        self.x = self.x_coord = x_coord
+        self.y = self.y_coord = y_coord
+        self.speed = 0
+        self.age = 0
+
+        self.original_image = pg.image.load(f"{image}")
+        self.image = pg.transform.rotate(self.original_image, self.angle)
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.x, self.y)
         self.mask = pg.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.width, self.height = self.rect.center
+
+        self.distance = 0
+        self.gap_to_cp = 0
+        self.points = 0
 
     def get_data(self):
         return self.network.get_data()
 
     def update_car(self):
         global track_mask
-        global running_cars
+        
+
+        self.age += 1
+        if self.age > 10 and self.speed == 0:
+            self.crash = True
+            return
 
         self.image = pg.transform.rotate(self.original_image, -self.angle)
 
@@ -184,7 +192,6 @@ class Car(pg.sprite.Sprite):
 
         if track_mask.overlap(self.mask, ((int(self.pos_x), int(self.pos_y)))):
             self.crash = True
-            running_cars -= 1
 
         for cp in cp_list:
             cp_x, cp_y = cp
@@ -214,7 +221,6 @@ class Car(pg.sprite.Sprite):
         self.angle = self.original_angle
         self.points = 0
         self.distance = 0
-        self.age -= 1
 
 
 
@@ -280,7 +286,7 @@ while running:
     running_cars = n_cars
     game_tick = 0
 
-    while running_cars > 0 and game_tick < 500 and running:
+    while running_cars > 0.1 * n_cars and game_tick < 500 and running:
         #CLOCK.tick(60)
         game_tick += 1
 
@@ -298,6 +304,8 @@ while running:
         for car in grid:
             if not car.crash:
                 car.update_car()
+                if car.crash:
+                    running_cars -= 1
                 if render_all:
                     screen.blit(car.image, (int(car.pos_x), int(car.pos_y)))
 
@@ -305,16 +313,7 @@ while running:
             screen.blit(best_car.image, (int(best_car.pos_x), int(best_car.pos_y)))
 
         pg.display.update()
-        
-        still_counter = 0 # To be reworked
-        if game_tick > 20:
-            for car in grid:
-                if car.speed <= 0.25 and not car.crash:
-                    still_counter += 1
 
-        if running_cars == still_counter:
-            break
-        
     
         # Check to close app
         keys = pg.key.get_pressed()

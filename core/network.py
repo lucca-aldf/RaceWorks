@@ -10,10 +10,15 @@ The neural network is to be arranged in an input layer with XXXXXXXXXX inputs, t
 
 rd.seed(20062002)
 
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
 
 class Network:
 
-    network_structure = np.array([9,6,4,2])
+    id_counter = 0
+
+    network_structure = np.array([8,6,4,4])
 
     # Mutation explained later in the code
     individual_mutation_chance = 0.1            # Chance for each network to mutate when ordered to mutate
@@ -21,7 +26,7 @@ class Network:
     crossover_bias = 0.5                        # How likely it is for the genes to be picked from one over the other parent
     gene_mutation_chance = 0.1                  
     mutation_strength_factor = 0.1 * 1000 + 1000# How large the alterations to the value of the weight can be
-    mutation_noise_factor = 0.1                 # Addition factor
+    mutation_noise_factor = 1000                 # Addition factor
 
 
     def set_individual_mutation_chance(n):
@@ -42,7 +47,7 @@ class Network:
         return rd.random() * rd.choice([-1,1])
 
     def weight_mutation():
-        return math.pow(rd.randrange(start=1000, stop=Network.mutation_strength_factor, step=1) / 1000, rd.choice([-1, 1]))
+        return math.pow(rd.randrange(start=1000, stop=Network.mutation_strength_factor, step=1) / 1000, rd.choice([-1, 1])) * rd.choice([-1,1])
 
     def weight_noise():
         return rd.random() * rd.choice([-1,1])
@@ -83,35 +88,40 @@ class Network:
             self.network_weights = np.array([[[Network.init_random_weight() for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)]) # Returns a numpy array in the specified architecture
             
             self.bias = np.array([Network.init_random_weight() for i in range(len(self.network_structure) - 1)])
+            
+            self.id = [Network.id_counter]
+            Network.id_counter += 1
 
         else: # Copy of previous individual
-            self.network_weights, self.bias = data
+            self.network_weights, self.bias, self.id = data
 
             if mutate:
+                self.id.append(Network.id_counter)
+                Network.id_counter += 1
                 self.mutate()
 
 
     def get_data(self):
-        return [self.network_weights, self.bias]
+        return [np.copy(self.network_weights), np.copy(self.bias), self.id.copy()]
 
     def feedforward(self, data):
         for layer in range(len(self.network_weights)):
             data = np.dot(data, self.network_weights[layer])
+            data = np.clip(data, -500, 500)
             for i in range(len(data)):
-                data[i] = math.tanh(data[i]) + self.bias[layer]
+                data[i] = sigmoid(data[i]) + self.bias[layer]
 
-        data[-1] -= self.bias[-1] # Turning output
-        return data.flatten()
-
+        data = data.flatten()
+        return [data[0] - data[1], data[2] - data[3]]
 
     def mutate(self):
-        if rd.random() < self.individual_mutation_chance:
+        if rd.random() < Network.individual_mutation_chance:
 
             for layer in range(len(self.network_weights)):
                 for neuron in range(len(self.network_weights[layer])):
                     for weight in range(len(self.network_weights[layer][neuron])):
 
-                        if rd.random() < self.gene_mutation_chance: # If mutation happens
+                        if rd.random() < Network.gene_mutation_chance: # If mutation happens
                             self.network_weights[layer][neuron][weight] = self.network_weights[layer][neuron][weight] * Network.weight_mutation() + Network.weight_noise()
 
             for layer in range(len(self.bias)):

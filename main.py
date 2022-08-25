@@ -81,6 +81,7 @@ class Car(pg.sprite.Sprite):
         global gen_counter
 
         self.network = network
+        self.id = self.network.get_data()[2]
         self.throttle = 0
         self.turning = 0
 
@@ -136,14 +137,13 @@ class Car(pg.sprite.Sprite):
             
             input_data = [
             self.speed,
-            self.angle,
-            line_tracer_2(self.angle, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 15, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 45, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 90, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 270, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 315, self.x, self.y, track_mask),
-            line_tracer_2(self.angle + 345, self.x, self.y, track_mask)
+            math.log2(line_tracer_2(self.angle, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 15, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 45, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 90, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 270, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 315, self.x, self.y, track_mask)),
+            math.log2(line_tracer_2(self.angle + 345, self.x, self.y, track_mask))
             ]
 
             self.throttle, self.turning = self.network.feedforward(input_data)
@@ -155,6 +155,7 @@ class Car(pg.sprite.Sprite):
                 self.throttle = 1
             elif self.throttle < -1:
                 self.throttle = -1
+
             if self.throttle > 0:
                 self.speed += self.acceleration * self.throttle
             else:
@@ -255,7 +256,7 @@ pg.display.set_icon(icon)
 font = pg.font.SysFont('century', 18)
 
 render_all = True
-track_name = "FlashPoint Raceway Short LC"
+track_name = "FlashPoint Raceway Short L"
 gen_counter = 0
 cp_list = [(-585, 480), (-450, 480), (-230, 480), (150, -465), (175, -455), (270, -415), (410, -370), (1200, -600)]
 
@@ -264,16 +265,16 @@ n_cars = 250 #int(input(""))
 Network.set_individual_mutation_chance(1)
 Network.set_crossover_chance(1)
 Network.set_crossover_bias(0.5)
-Network.set_gene_mutation_chance(0.025)
-Network.set_mutation_strength_factor(0.025)
-Network.set_mutation_noise_factor(0.00)
+Network.set_gene_mutation_chance(0.05)
+Network.set_mutation_strength_factor(0.25)
+Network.set_mutation_noise_factor(0.15)
 
 def new_car(data=[], mutate=False):
     return Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(data, mutate))
 
 grid = []
 for x in range(n_cars):
-    grid.append(Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network()))
+    grid.append(new_car())
     
 best_car = grid[0]
 REPRODUCTION_METHOD = BestReproduce(Network.reproduce, new_car)
@@ -292,7 +293,7 @@ while running:
     running_cars = n_cars
     game_tick = 0
 
-    while running_cars > 5 and game_tick < 500 and running:
+    while running_cars > 0 and game_tick < 200 and running:
         #CLOCK.tick(60)
         game_tick += 1
 
@@ -331,16 +332,18 @@ while running:
         car.gap_to_cp = distance_two_points(cp_list[car.points], (car.x, car.y))
 
     grid.sort(key=lambda car: (car.fitness()), reverse=True)
-    #print(grid[0].network.network_weights, grid[0].gap_to_cp - (grid[0].points * 500))
-
+    print(f"Gen {gen_counter}: Best car ran {grid[0].distance} metres")
+    print("Stuff:")
     for car in grid:
         total_distance += car.distance
 
     # Reprodution and mutation
     
-    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=0, top_mutation_factor=2)
+    
+    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=0, top_mutation_factor=1)
 
     end_3 = time.time()
-    print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres in {end_3 - start_3} seconds for {n_cars} cars")
+    #print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres")# in {end_3 - start_3} seconds for {n_cars} cars")
     gen_counter += 1
     best_car = grid[0]
+    print("##############################")

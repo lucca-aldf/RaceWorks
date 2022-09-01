@@ -10,7 +10,7 @@ class BestReproduce:
         self.car = car
         self.network = network
     
-    
+
     def new_car(self, data=[], mutate=False):
         return self.car(network=Network(data=data, mutate=mutate))
         
@@ -27,9 +27,6 @@ class BestReproduce:
             new_grid.append(self.new_car(data=population[i].get_data()))
             reproduction_pool.append(self.new_car(data=population[i].get_data()))
             car_count += 1
-
-            print(new_grid[i].get_data()[0][0][0])
-            print(population[i].get_data()[0][0][0])
             
 
         # Mutated variants of the best

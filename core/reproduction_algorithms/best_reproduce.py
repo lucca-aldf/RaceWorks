@@ -15,17 +15,15 @@ class BestReproduce:
         return self.car(network=Network(data=data, mutate=mutate))
         
 
-    def generate(self, population, top_immunity_count, couples_count, top_mutation_factor):
-        total_cars = len(population)
+    def generate(self, population, top_immunity_count, reproduction_count, couples_count, top_mutation_factor, pressure_count):
+        total_cars = pressure_count
         new_grid = list()
         car_count = 0
 
 
         # Best individuals are passed to the next generation
-        reproduction_pool = list()
         for i in range(top_immunity_count):
             new_grid.append(self.new_car(data=population[i].get_data()))
-            reproduction_pool.append(self.new_car(data=population[i].get_data()))
             car_count += 1
             
 
@@ -36,12 +34,16 @@ class BestReproduce:
                 car_count += 1
         
 
-        # Reproduction of the best in the pool 
+        # Reproduction of the best in the pool
+        reproduction_pool = list()
+        for i in range(reproduction_count):
+            reproduction_pool.append(self.new_car(data=population[i].get_data()))
+
         rd.shuffle(reproduction_pool)
         for i in range(couples_count):
-            children = self.reproduce(reproduction_pool[2*i].network, reproduction_pool[2*i + 1].network)
-            new_grid.append(self.new_car(data=children[0]))
-            new_grid.append(self.new_car(data=children[1]))
+            children = self.reproduce(reproduction_pool[rd.randint(0, reproduction_count - 1)].network, reproduction_pool[rd.randint(0, reproduction_count - 1)].network)
+            new_grid.append(self.new_car(data=children[0], mutate=True))
+            new_grid.append(self.new_car(data=children[1], mutate=True))
             car_count += 2
 
 
@@ -57,4 +59,4 @@ class BestReproduce:
             new_grid.append(self.new_car())
             car_count += 1
         
-        return new_grid[:total_cars]
+        return new_grid

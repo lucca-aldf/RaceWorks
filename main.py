@@ -45,9 +45,9 @@ n_cars = 250 #int(input(""))
 Network.set_individual_mutation_chance(1)
 Network.set_crossover_chance(1)
 Network.set_crossover_bias(0.5)
-Network.set_gene_mutation_chance(0.05)
-Network.set_mutation_strength_factor(0.25)
-Network.set_mutation_noise_factor(0.15)
+Network.set_gene_mutation_chance(0.15)
+Network.set_mutation_strength_factor(0.05)
+Network.set_mutation_noise_factor(0.05)
 
 grid = []
 for x in range(n_cars):
@@ -71,7 +71,7 @@ while running:
     running_cars = n_cars
     game_tick = 0
 
-    while running_cars > 0 and game_tick < 200 and running:
+    while running_cars > 0 and game_tick < 1000 and running:
         #CLOCK.tick(60)
         game_tick += 1
 
@@ -109,15 +109,18 @@ while running:
     for car in grid:
         car.gap_to_cp = distance_two_points(cp_list[car.points], (car.x, car.y))
 
-    grid.sort(key=lambda car: (car.fitness()), reverse=True)
+    grid.sort(key=lambda car: (car.distance), reverse=True)
+    Car.set_max_distance(grid[0].distance)
     print(f"Gen {gen_counter}: Best car ran {grid[0].distance} metres")
+
+    grid.sort(key=lambda car: (car.fitness()), reverse=True)
+
     for car in grid:
         total_distance += car.distance
 
     # Reprodution and mutation
     
-    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=1, couples_count=0, top_mutation_factor=1)
-
+    grid = REPRODUCTION_METHOD.generate(population=grid[:100], top_immunity_count=20, reproduction_count=100, couples_count=100, pressure_count=n_cars, top_mutation_factor=1)
     end_3 = time.time()
     print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres")# in {end_3 - start_3} seconds for {n_cars} cars")
     gen_counter += 1

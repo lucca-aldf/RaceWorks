@@ -18,7 +18,7 @@ class Network:
 
     id_counter = 0
 
-    network_structure = np.array([8,6,4,4])
+    network_structure = np.array([8,6,4])
 
     # Mutation explained later in the code
     individual_mutation_chance = 0           # Chance for each network to mutate when ordered to mutate

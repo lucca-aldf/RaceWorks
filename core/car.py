@@ -1,5 +1,6 @@
 import math
 import pygame as pg
+import numpy as np
 from .network import *
 
 def distance_two_points(pointA, pointB):
@@ -68,8 +69,13 @@ def line_tracer_2(angle, start_x, start_y, mask):
 
 
 class Car(pg.sprite.Sprite):
+    distance = 0
+
     def set_track_mask(mask):
         Car.track_mask = mask
+
+    def set_max_distance(distance):
+        Car.max_distance = distance
 
     def __init__(self, network=Network()):
         global gen_counter
@@ -113,7 +119,7 @@ class Car(pg.sprite.Sprite):
         
         else:
             self.age += 1
-            if 0.4*self.age - self.distance > 20:
+            if 0.2*self.age - self.distance > 20:
                 self.crash = True
                 return
 
@@ -192,7 +198,7 @@ class Car(pg.sprite.Sprite):
 
 
     def fitness(self):
-        return self.distance * (5 - self.speed)
+        return self.distance
 
                             
     def reset_car(self): # Deprecated

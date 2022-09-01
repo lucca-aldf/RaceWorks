@@ -77,7 +77,8 @@ def print_text(text, coords):
 
 
 class Car(pg.sprite.Sprite):
-    def __init__(self, image, x_coord, y_coord, angle, top_speed, acceleration, brake, turning_angle, network):
+
+    def __init__(self, network=Network()):
         global gen_counter
 
         self.network = network
@@ -85,20 +86,20 @@ class Car(pg.sprite.Sprite):
         self.throttle = 0
         self.turning = 0
 
-        self.top_speed = top_speed
-        self.acceleration = acceleration
-        self.brake = brake
-        self.turning_angle = turning_angle
+        self.top_speed = 8
+        self.acceleration = 0.7
+        self.brake = 2
+        self.turning_angle = 10
 
         self.crash = False
-        self.angle = self.original_angle = angle
+        self.angle = self.original_angle = 90
         self.rad_angle = math.radians(self.angle)
-        self.x = self.x_coord = x_coord
-        self.y = self.y_coord = y_coord
+        self.x = self.x_coord = 604
+        self.y = self.y_coord = 486
         self.speed = 0
         self.age = 0
 
-        self.original_image = pg.image.load(f"{image}")
+        self.original_image = pg.image.load("gfx/Formula Rossa Car.png")
         self.image = pg.transform.rotate(self.original_image, self.angle)
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
@@ -122,7 +123,7 @@ class Car(pg.sprite.Sprite):
         
         else:
             self.age += 1
-            if self.age > 10 and self.speed == 0:
+            if 0.4*self.age - self.distance > 20:
                 self.crash = True
                 return
 
@@ -217,7 +218,7 @@ class Car(pg.sprite.Sprite):
 
 
     def fitness(self):
-        return (math.pow(self.distance, 3) / self.age) * (1 - (self.speed / self.top_speed))
+        return self.distance * (5 - self.speed)
 
                             
     def reset_car(self): # Deprecated
@@ -269,15 +270,12 @@ Network.set_gene_mutation_chance(0.05)
 Network.set_mutation_strength_factor(0.25)
 Network.set_mutation_noise_factor(0.15)
 
-def new_car(data=[], mutate=False):
-    return Car("gfx/Formula Rossa Car.png", 604, 486, 270, 8, 0.7, 2, 10, Network(data, mutate))
-
 grid = []
 for x in range(n_cars):
-    grid.append(new_car())
+    grid.append(Car())
     
 best_car = grid[0]
-REPRODUCTION_METHOD = BestReproduce(Network.reproduce, new_car)
+REPRODUCTION_METHOD = BestReproduce(Network.reproduce, Car, Network)
 
 screen.fill((96, 96, 96))
 track = pg.image.load(f"gfx/{track_name} Mask.png")
@@ -333,17 +331,15 @@ while running:
 
     grid.sort(key=lambda car: (car.fitness()), reverse=True)
     print(f"Gen {gen_counter}: Best car ran {grid[0].distance} metres")
-    print("Stuff:")
     for car in grid:
         total_distance += car.distance
 
     # Reprodution and mutation
     
-    
-    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=25, couples_count=0, top_mutation_factor=1)
+    grid = REPRODUCTION_METHOD.generate(population=grid, top_immunity_count=1, couples_count=0, top_mutation_factor=1)
 
     end_3 = time.time()
-    #print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres")# in {end_3 - start_3} seconds for {n_cars} cars")
+    print(f"Gen {gen_counter}: Average of {total_distance/ n_cars} metres")# in {end_3 - start_3} seconds for {n_cars} cars")
     gen_counter += 1
     best_car = grid[0]
-    print("##############################")
+    print("")

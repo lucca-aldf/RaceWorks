@@ -21,10 +21,10 @@ class Network:
     network_structure = np.array([8,6,4,4])
 
     # Mutation explained later in the code
-    individual_mutation_chance = 0.1            # Chance for each network to mutate when ordered to mutate
+    individual_mutation_chance = 0           # Chance for each network to mutate when ordered to mutate
     crossover_chance = 0.8                      # Crossover chance
     crossover_bias = 0.5                        # How likely it is for the genes to be picked from one over the other parent
-    gene_mutation_chance = 0.1                  
+    gene_mutation_chance = 0                  
     mutation_strength_factor = 0.1 * 1000 + 1000# How large the alterations to the value of the weight can be
     mutation_noise_factor = 1000                 # Addition factor
 
@@ -93,7 +93,11 @@ class Network:
             Network.id_counter += 1
 
         else: # Copy of previous individual
-            self.network_weights, self.bias, self.id = data
+            network_weights, bias, self.id = data
+
+            self.network_weights = np.array([[[network_weights[i][j][k] for k in range(self.network_structure[i+1])] for j in range(self.network_structure[i])] for i in range(len(self.network_structure) - 1)])
+
+            self.bias = np.array([bias[i] for i in range(len(self.network_structure) - 1)])
 
             if mutate:
                 self.id.append(Network.id_counter)
@@ -102,7 +106,7 @@ class Network:
 
 
     def get_data(self):
-        return [np.copy(self.network_weights), np.copy(self.bias), self.id.copy()]
+        return [self.network_weights.copy(), np.copy(self.bias), self.id.copy()]
 
     def feedforward(self, data):
         for layer in range(len(self.network_weights)):
